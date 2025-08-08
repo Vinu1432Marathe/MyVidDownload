@@ -1,0 +1,135 @@
+package com.clipcatcher.video.highspeed.savemedia.download.Language
+
+
+import android.content.Context
+import android.content.Intent
+import android.content.SharedPreferences
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener
+import android.content.res.Configuration
+import android.os.Bundle
+import android.util.Log
+import android.view.View
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.TextView
+import androidx.core.app.ActivityCompat.finishAffinity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.isVisible
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.addsdemo.mysdk.ADPrefrences.MyApp
+import com.addsdemo.mysdk.ADPrefrences.NativeAds_Class
+import com.addsdemo.mysdk.utils.UtilsClass
+import com.clipcatcher.video.highspeed.savemedia.download.Activity.BaseActivity
+import com.clipcatcher.video.highspeed.savemedia.download.Other.AppUtil.Country_list
+import com.clipcatcher.video.highspeed.savemedia.download.Other.AppUtil.languages_list
+import com.clipcatcher.video.highspeed.savemedia.download.Other.LocaleHelper
+import com.clipcatcher.video.highspeed.savemedia.download.Other.PreferencesHelper11
+import com.clipcatcher.video.highspeed.savemedia.download.Other.SharePref
+import com.clipcatcher.video.highspeed.savemedia.download.R
+import java.util.Locale
+
+class CountryActivity : BaseActivity(), OnSharedPreferenceChangeListener {
+
+
+    lateinit var container: LinearLayout
+    lateinit var rclLanguage: RecyclerView
+    lateinit var txtDone: TextView
+    lateinit var txtHeader: TextView
+    lateinit var imgBack: ImageView
+
+
+
+    override fun attachBaseContext(newBase: Context) {
+        val langCode = PreferencesHelper11(newBase).selectedLanguage ?: "en"
+        super.attachBaseContext(LocaleHelper.setLocale(newBase, langCode))
+    }
+
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        setContentView(R.layout.activity_country)
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
+        rclLanguage = findViewById(R.id.rclLanguage)
+        txtDone = findViewById(R.id.txtDone)
+        txtHeader = findViewById(R.id.txtHeader)
+        imgBack = findViewById(R.id.imgBack)
+
+//        Utils.TextColor(txtHeader)
+        container = findViewById(R.id.container)
+        container.isVisible =
+            MyApp.ad_preferences.getRemoteConfig()?.isAdShow == true
+
+        val llline_full = findViewById<LinearLayout>(com.addsdemo.mysdk.R.id.llline_full)
+        val llnative_full = findViewById<LinearLayout>(com.addsdemo.mysdk.R.id.llnative_full)
+        NativeAds_Class.NativeFull_Show(this, llnative_full, llline_full, "medium")
+
+
+        if (SharePref.isOnboarding(this)) {
+            imgBack.visibility = View.VISIBLE
+
+        } else {
+            imgBack.visibility = View.GONE
+        }
+
+        imgBack.setOnClickListener {
+            onBackPressed()
+        }
+
+
+
+        Log.e("CheckLangua", "Language  : $languages_list")
+
+        val adapter = AdapterCountry(this, Country_list,  0)
+        rclLanguage.adapter = adapter
+        rclLanguage.layoutManager = LinearLayoutManager(this)
+
+        txtDone.setOnClickListener {
+
+
+                val intent = Intent(this, LanguageActivity::class.java)
+                UtilsClass.startSpecialActivity(this, intent, false);
+                finish()
+
+
+        }
+
+    }
+
+    override fun onBackPressed() {
+        if (SharePref.isOnboarding(this)) {
+//
+            finish()
+        } else {
+//
+            finishAffinity()
+        }
+    }
+
+    fun setLocale(context: Context, language: String): Context {
+        val locale = Locale(language)
+        Locale.setDefault(locale)
+
+        val config = Configuration()
+        config.setLocale(locale)
+
+        return context.createConfigurationContext(config)
+    }
+
+
+
+
+    override fun onSharedPreferenceChanged(
+        p0: SharedPreferences?,
+        p1: String?
+    ) {
+        TODO("Not yet implemented")
+    }
+
+}
